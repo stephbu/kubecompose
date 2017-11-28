@@ -36,6 +36,10 @@ services:
             - --allow-privileged=true
         ports:
             - 8080:8080
+        healthcheck:
+            test:
+                - CMD-SHELL
+                - wget -qO- http://127.0.0.1:8080/health || exit 1 
     kubelet:
         depends_on:
             - kube-apiserver
@@ -70,6 +74,8 @@ services:
             - kube-controller-manager
             - --master=http://kube-apiserver:8080
     kube-scheduler:
+        depends_on:
+            - kube-apiserver
         image: "quay.io/coreos/hyperkube:${KUBERNETES_VERSION}_coreos.0"
         networks:
             - kube-api
@@ -77,6 +83,8 @@ services:
             - kube-scheduler
             - --master=http://kube-apiserver:8080
     kube-proxy:
+        depends_on:
+            - kube-apiserver
         image: "quay.io/coreos/hyperkube:${KUBERNETES_VERSION}_coreos.0"
         network_mode: host
         privileged: true
